@@ -13,6 +13,7 @@ export default class extends BaseSchema {
       table.string('avatar').nullable()
       table.timestamp('created_at').defaultTo(this.now())
       table.timestamp('updated_at').defaultTo(this.now())
+      table.timestamp('verified_at').nullable()
       table.timestamp('deleted_at').nullable()
     })
   }
