@@ -1,4 +1,5 @@
 import vine from '@vinejs/vine'
+import { passwordPattern } from '../utils/common_patterns.js'
 
 export const registrationRequestValidator = vine.compile(
   vine.object({
@@ -12,7 +13,7 @@ export const registrationRequestValidator = vine.compile(
         const user = await db.from('users').where('email', value).first()
         return !user
       }),
-    password: vine.string().trim().minLength(6).maxLength(16).alphaNumeric(),
+    password: vine.string().trim().confirmed().regex(passwordPattern),
   })
 )
 
