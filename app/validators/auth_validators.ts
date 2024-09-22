@@ -3,17 +3,19 @@ import { passwordPattern } from '../utils/common_patterns.js'
 
 export const registrationRequestValidator = vine.compile(
   vine.object({
-    firstname: vine.string().trim().minLength(1).maxLength(50),
-    lastname: vine.string().trim().minLength(1).maxLength(50),
+    firstname: vine.string().trim(),
+    lastname: vine.string().trim(),
     email: vine
       .string()
       .trim()
       .email()
       .unique(async (db, value) => {
-        const user = await db.from('users').where('email', value).first()
+        const user = await db.from('users').where('email', value.toLowerCase()).first()
         return !user
-      }),
-    password: vine.string().trim().confirmed().regex(passwordPattern),
+      })
+      .transform<string>((value) => value.toLowerCase()),
+    password: vine.string().trim().regex(passwordPattern),
+    password_confirmation: vine.string().trim().sameAs('password'),
   })
 )
 
