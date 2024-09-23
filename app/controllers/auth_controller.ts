@@ -52,7 +52,7 @@ export default class AuthController {
 
     if (!decryptedToken) {
       return response.badRequest({
-        message: 'Verification token is either invalid or expire',
+        message: 'Verification token is either invalid or expired.',
       })
     }
 
@@ -60,7 +60,7 @@ export default class AuthController {
 
     if (!email) {
       return response.badRequest({
-        message: 'Verification token is either invalid or expire',
+        message: 'Verification token is either invalid or expired.',
       })
     }
 
