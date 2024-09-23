@@ -17,11 +17,11 @@ const mailConfig = defineConfig({
        * Uncomment the auth block if your SMTP
        * server needs authentication
        */
-      auth: {
-        type: 'login',
-        user: env.get('SMTP_USERNAME') as string,
-        pass: env.get('SMTP_PASSWORD') as string,
-      },
+      // auth: {
+      //   type: 'login',
+      //   user: env.get('SMTP_USERNAME') as string,
+      //   pass: env.get('SMTP_PASSWORD') as string,
+      // },
     }),
   },
 })

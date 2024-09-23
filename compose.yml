@@ -50,13 +50,18 @@ services:
       retries: 3
       timeout: 5s
 
-  mailhog:
-    image: 'mailhog/mailhog:latest'
+  mailpit:
+    image: 'axllent/mailpit:latest'
     ports:
-      - '${MAILHOG_PORT:-1025}:1025'
-      - '${MAILHOG_DASHBOARD_PORT:-8025}:8025'
+        - '${FORWARD_MAILPIT_PORT:-1025}:1025'
+        - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
     networks:
-      - lastboard
+        - lastboard
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8025/livez"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
 
 
 networks:

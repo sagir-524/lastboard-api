@@ -17,7 +17,12 @@ export default class AuthController {
   async register({ request, response }: HttpContext) {
     const payload = await request.validateUsing(registrationRequestValidator)
     const user = new User()
-    user.fill(payload)
+
+    user.email = payload.email
+    user.firstname = payload.firstname
+    user.lastname = payload.lastname
+    user.password = payload.password
+
     await user.save()
     await sendUserVerificationEmail(user)
     return response.noContent()
