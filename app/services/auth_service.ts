@@ -37,7 +37,7 @@ export const sendUserVerificationEmail = async (user: User) => {
         .to(user.email)
         .from(`noreply@${env.get('HOST')}`)
         .html(
-          `Please <a href="${env.get('APP_URL')}/auth/verify-email/${encryptedToken}">click here</a> to verify your email`
+          `Please <a href="${env.get('APP_URL')}/auth/verify-email/${user.email}/${encryptedToken}">click here</a> to verify your email`
         )
     }),
   ])
