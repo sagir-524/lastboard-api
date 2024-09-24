@@ -30,3 +30,16 @@ export const verifyEmailRequestValidator = vine.compile(
     token: vine.string().trim(),
   })
 )
+
+export const loginReuestValidator = vine.compile(
+  vine.object({
+    email: vine.string().trim().email(),
+    password: vine.string().trim().regex(passwordPattern),
+  })
+)
+
+export const refreshRequestValidator = vine.compile(
+  vine.object({
+    refreshToken: vine.string().trim().jwt(),
+  })
+)

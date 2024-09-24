@@ -5,12 +5,15 @@ import {
   verifyTokenAndGetEmail,
 } from '#services/auth_service'
 import {
+  loginReuestValidator,
+  refreshRequestValidator,
   registrationRequestValidator,
   resendEmailVerificationMailRequestValidator,
   verifyEmailRequestValidator,
 } from '#validators/auth_validators'
 import type { HttpContext } from '@adonisjs/core/http'
 import encryption from '@adonisjs/core/services/encryption'
+import hash from '@adonisjs/core/services/hash'
 import { DateTime } from 'luxon'
 
 export default class AuthController {
@@ -73,5 +76,53 @@ export default class AuthController {
     await user.save()
     await clearPreviousVerificationTokens(user)
     return response.noContent()
+  }
+
+  async login({ auth, request, response }: HttpContext) {
+    const { email, password } = await request.validateUsing(loginReuestValidator)
+    const user = await User.query()
+      .withScopes((q) => q.active())
+      .where('email', email)
+      .first()
+
+    if (!user?.verifiedAt) {
+      return response.notAcceptable({
+        message: 'Your email is not verified.',
+      })
+    }
+
+    if (!user || !(await hash.verify(user.password, password))) {
+      return response.badRequest({
+        message: 'Email or password did not match.',
+      })
+    }
+
+    const res = await auth.use('jwt').generate(user)
+    return { user, ...res }
+  }
+
+  async refresh({ auth, request, response }: HttpContext) {
+    const { refreshToken } = await request.validateUsing(refreshRequestValidator)
+    const userId = await auth.use('jwt').validateRefreshToken(refreshToken)
+
+    if (!userId) {
+      return response.badRequest({
+        message: 'Token is either expired or not valid.',
+      })
+    }
+
+    const user = await User.query()
+      .withScopes((q) => q.active())
+      .first()
+
+    if (!user?.verifiedAt) {
+      return response.notAcceptable({
+        message: 'Your email is not verified.',
+      })
+    }
+
+    const res = await auth.use('jwt').generate(user)
+    await auth.use('jwt').deleteRefreshToken(refreshToken)
+    return { ...res, user }
   }
 }
