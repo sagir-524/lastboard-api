@@ -85,15 +85,15 @@ export default class AuthController {
       .where('email', email)
       .first()
 
-    if (!user?.verifiedAt) {
-      return response.notAcceptable({
-        message: 'Your email is not verified.',
-      })
-    }
-
     if (!user || !(await hash.verify(user.password, password))) {
       return response.badRequest({
         message: 'Email or password did not match.',
+      })
+    }
+
+    if (!user?.verifiedAt) {
+      return response.notAcceptable({
+        message: 'Your email is not verified.',
       })
     }
 
@@ -124,5 +124,9 @@ export default class AuthController {
     const res = await auth.use('jwt').generate(user)
     await auth.use('jwt').deleteRefreshToken(refreshToken)
     return { ...res, user }
+  }
+
+  async user({ auth }: HttpContext) {
+    return auth.user || null
   }
 }

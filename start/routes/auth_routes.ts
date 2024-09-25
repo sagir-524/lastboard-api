@@ -1,3 +1,4 @@
+import { middleware } from '#start/kernel'
 import router from '@adonisjs/core/services/router'
 
 router
@@ -10,6 +11,7 @@ router
 
     router.post('login', '#controllers/auth_controller.login').as('login')
     router.post('refresh', '#controllers/auth_controller.refresh').as('refresh')
+    router.get('user', '#controllers/auth_controller.user').as('user').middleware(middleware.auth())
   })
   .prefix('api/auth')
   .as('api.auth')
