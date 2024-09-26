@@ -97,7 +97,8 @@ export default class AuthController {
       })
     }
 
-    return auth.use('jwt').generate(user)
+    const res = await auth.use('jwt').generate(user)
+    return { ...res, user }
   }
 
   async refresh({ auth, request, response }: HttpContext) {
@@ -122,7 +123,7 @@ export default class AuthController {
 
     const res = await auth.use('jwt').generate(user)
     await auth.use('jwt').deleteRefreshToken(refreshToken)
-    return res
+    return { ...res, user }
   }
 
   async user({ auth }: HttpContext) {
