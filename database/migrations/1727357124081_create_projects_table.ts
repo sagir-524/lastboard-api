@@ -8,7 +8,7 @@ export default class extends BaseSchema {
       table.increments('id').unsigned().primary()
       table.string('name')
       table.text('description')
-      table.integer('creator_id').unsigned().references('users.id').onDelete('SET NULL')
+      table.integer('creator_id').unsigned().nullable().references('users.id').onDelete('SET NULL')
       table.integer('owener_id').unsigned().references('users.id').onDelete('CASCADE')
       table.timestamp('created_at').defaultTo(this.now())
       table.timestamp('updated_at').defaultTo(this.now())
