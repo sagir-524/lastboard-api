@@ -90,4 +90,15 @@ export default class ProjectsController {
     await project.save()
     return response.noContent()
   }
+
+  async restore({ params, response }: HttpContext) {
+    const project = await Project.query()
+      .apply((q) => q.deleted())
+      .where('id', params.id)
+      .firstOrFail()
+
+    project.deletedAt = null
+    await project.save()
+    return response.noContent()
+  }
 }
