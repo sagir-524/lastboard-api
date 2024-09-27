@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column, hasMany } from '@adonisjs/lucid/orm'
+import { BaseModel, belongsTo, column, hasMany, manyToMany, scope } from '@adonisjs/lucid/orm'
 import User from './user.js'
-import type { HasMany, BelongsTo } from '@adonisjs/lucid/types/relations'
+import type { HasMany, BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Status from './status.js'
 
 export default class Project extends BaseModel {
@@ -33,6 +33,15 @@ export default class Project extends BaseModel {
   @hasMany(() => Status)
   declare statuses: HasMany<typeof Status>
 
+  @manyToMany(() => User, {
+    pivotTable: 'project_user_pivot',
+    localKey: 'id',
+    pivotForeignKey: 'project_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'user_id',
+  })
+  declare users: ManyToMany<typeof User>
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -41,4 +50,7 @@ export default class Project extends BaseModel {
 
   @column.dateTime()
   declare deletedAt?: DateTime | null
+
+  static deleted = scope((query) => query.whereNotNull('deleted_at'))
+  static active = scope((query) => query.whereNull('deleted_at'))
 }

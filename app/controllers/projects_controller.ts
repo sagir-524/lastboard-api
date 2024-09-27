@@ -1,20 +1,33 @@
 import Project from '#models/project'
 import User from '#models/user'
-import { createProjectRequestValidator } from '#validators/project_validators'
+import {
+  projectsListRequestValidator,
+  saveProjectRequestValidator,
+} from '#validators/project_validators'
 import type { HttpContext } from '@adonisjs/core/http'
 import db from '@adonisjs/lucid/services/db'
+import { DateTime } from 'luxon'
 
 export default class ProjectsController {
-  /**
-   * Display a list of resource
-   */
-  async index({}: HttpContext) {}
+  async index({ auth, request }: HttpContext) {
+    const { search, page, perPage, sortBy, sortOrder, status } = await request.validateUsing(
+      projectsListRequestValidator
+    )
 
-  /**
-   * Display form to create a new record
-   */
-  async create({ auth, request, response }: HttpContext) {
-    const { name, description } = await request.validateUsing(createProjectRequestValidator)
+    const user = auth.use('jwt').user as User
+    const query = user.related('projects').query()
+
+    query.apply((scopes) => (status === 'active' ? scopes.active() : scopes.deleted()))
+
+    if (search) {
+      query.whereILike('name', search).andWhereILike('description', search)
+    }
+
+    return query.orderBy(sortBy, sortOrder).paginate(page, perPage)
+  }
+
+  async store({ auth, request, response }: HttpContext) {
+    const { name, description } = await request.validateUsing(saveProjectRequestValidator)
     const trx = await db.transaction()
     const user = auth.use('jwt').user as User
 
@@ -24,9 +37,9 @@ export default class ProjectsController {
       project.description = description
       project.ownerId = user.id
       project.cretorId = user.id
-      await project.useTransaction(trx).save()
 
-      // create default statuses
+      await project.useTransaction(trx).save()
+      await project.related('users').attach([user.id], trx)
       await project.related('statuses').createMany(
         [
           { name: 'Todo', creatorId: user.id, order: 1 },
@@ -46,28 +59,35 @@ export default class ProjectsController {
     }
   }
 
-  /**
-   * Handle form submission for the create action
-   */
-  async store({ request }: HttpContext) {}
+  async show({ params }: HttpContext) {
+    return Project.query()
+      .apply((q) => q.active())
+      .where('id', params.id)
+      .firstOrFail()
+  }
 
-  /**
-   * Show individual record
-   */
-  async show({ params }: HttpContext) {}
+  async update({ params, request, response }: HttpContext) {
+    const project = await Project.query()
+      .apply((q) => q.active())
+      .where('id', params.id)
+      .firstOrFail()
 
-  /**
-   * Edit individual record
-   */
-  async edit({ params }: HttpContext) {}
+    const { name, description } = await request.validateUsing(saveProjectRequestValidator)
+    project.name = name
+    project.description = description
 
-  /**
-   * Handle form submission for the edit action
-   */
-  async update({ params, request }: HttpContext) {}
+    await project.save()
+    return response.noContent()
+  }
 
-  /**
-   * Delete record
-   */
-  async destroy({ params }: HttpContext) {}
+  async destroy({ params, response }: HttpContext) {
+    const project = await Project.query()
+      .apply((q) => q.active())
+      .where('id', params.id)
+      .firstOrFail()
+
+    project.deletedAt = DateTime.now()
+    await project.save()
+    return response.noContent()
+  }
 }
