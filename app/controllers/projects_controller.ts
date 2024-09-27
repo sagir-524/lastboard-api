@@ -63,6 +63,8 @@ export default class ProjectsController {
     return Project.query()
       .apply((q) => q.active())
       .where('id', params.id)
+      .preload('statuses', (b) => b.apply((scopes) => scopes.active()))
+      .preload('users', (b) => b.apply((scopes) => scopes.active()))
       .firstOrFail()
   }
 

@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, column } from '@adonisjs/lucid/orm'
+import { BaseModel, belongsTo, column, scope } from '@adonisjs/lucid/orm'
 import Project from './project.js'
 import { type BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from './user.js'
@@ -38,4 +38,7 @@ export default class Status extends BaseModel {
 
   @column.dateTime()
   declare deletedAt?: DateTime | null
+
+  static deleted = scope((query) => query.whereNotNull('deleted_at'))
+  static active = scope((query) => query.whereNull('deleted_at'))
 }
